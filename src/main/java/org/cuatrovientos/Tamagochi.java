@@ -11,6 +11,7 @@ public class Tamagochi implements Runnable {
     private int ritmo;
     private Random random;
     private Estado estado;
+    private String ordenPendiente;
 
     public Tamagochi(String nombre) {
         this.nombre = nombre;
@@ -18,6 +19,7 @@ public class Tamagochi implements Runnable {
         this.id = autoid++;
         this.random = new Random();
         this.ritmo = tiempoAlimento();
+        this.ordenPendiente = "";
     }
 
     public static int getAutoid() {
@@ -48,13 +50,17 @@ public class Tamagochi implements Runnable {
         return random.nextInt(100,1000) + 1;
     }
 
+    public String getOrdenPendiente() {
+        return ordenPendiente;
+    }
 
     /*
-    Tendrán que alimentarse, pero cada uno de ellos se alimenta a diferente ritmo. Unos comen más rápido que otros, o sea
-    que si les das una manzana a cada uno, tardaran diferente tiempo en comerla. Tendrán que avisar cuando comienzan y
-    finalizan de comer
-        */
+        Tendrán que alimentarse, pero cada uno de ellos se alimenta a diferente ritmo. Unos comen más rápido que otros, o sea
+        que si les das una manzana a cada uno, tardaran diferente tiempo en comerla. Tendrán que avisar cuando comienzan y
+        finalizan de comer
+            */
     public void alimentarse(){
+        System.out.println("comiendo....");
 
     }
 
@@ -64,8 +70,10 @@ public class Tamagochi implements Runnable {
 También quieren jugar. Jugar significa plantear al cuidador una suma entre dos números de 1 cifra cuyo resultado es menor
 que 10. El cuidador deberá responder. Si el resultado es incorrecto el tamagotchi sigue jugando.
    */
-    public void jugar(int num1,int num2){
-
+    public void jugar(){
+        int num1 = random.nextInt();
+        int num2 = random.nextInt();
+        System.out.println("jugando....");
     }
 
     /*
@@ -74,7 +82,7 @@ También necesita limpiarse. El tamagotchi se va ensuciando según pasa el tiemp
 avisa que está empezando a estar muy sucio. Al llegar a 10 el tamagotchi muere
      */
     public void limpiarse(){
-
+        System.out.println("limpiando....");
     }
 
 
@@ -89,6 +97,51 @@ avisa que está empezando a estar muy sucio. Al llegar a 10 el tamagotchi muere
 
     @Override
     public void run() {
+        System.out.println(nombre + ": ¡He nacido! Tardo " + ritmo + " ms en comer");
+        try {
+
+            while (estado != Estado.MUERTO){
+                String orden = ordenPendiente;
+                ordenPendiente = "";
+
+                switch (orden){
+                    case "":
+                        break;
+
+                    case "comer":
+                        estado = Estado.COMIENDO;
+                        alimentarse();
+
+                        break;
+                    case "jugar":
+                        estado = Estado.JUGANDO;
+                        jugar();
+
+                        break;
+                    case "limpiar":
+                        estado = Estado.LIMPIANDO;
+                        limpiarse();
+
+                        break;
+
+                    default:
+                        System.out.println("orden no encontrada");
+
+                }
+                if (estado != Estado.MUERTO) {
+                    estado = Estado.PARADO;
+
+                }
+
+                Thread.sleep(1000);
+            }
+
+
+        } catch (InterruptedException e) {
+            estado = Estado.MUERTO;
+            System.out.println(nombre + "Fin. Adiós, cuidador");
+            throw new RuntimeException(e);
+        }
 
 
     }
