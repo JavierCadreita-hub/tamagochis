@@ -54,6 +54,14 @@ public class Tamagochi implements Runnable {
         return ordenPendiente;
     }
 
+    public boolean darOrden(String orden) {
+        if (estado == Estado.PARADO && ordenPendiente.isEmpty()) {
+            ordenPendiente = orden;
+            return true;     // aceptada
+        }
+        return false;        // está ocupado
+    }
+
     /*
         Tendrán que alimentarse, pero cada uno de ellos se alimenta a diferente ritmo. Unos comen más rápido que otros, o sea
         que si les das una manzana a cada uno, tardaran diferente tiempo en comerla. Tendrán que avisar cuando comienzan y
@@ -97,53 +105,50 @@ avisa que está empezando a estar muy sucio. Al llegar a 10 el tamagotchi muere
 
     @Override
     public void run() {
-        System.out.println(nombre + ": ¡He nacido! Tardo " + ritmo + " ms en comer");
+        System.out.println(nombre + ": He nacido!!! Tardo " + ritmo + " ms en comer");
+
         try {
+            while (estado != Estado.MUERTO) {
 
-            while (estado != Estado.MUERTO){
-                String orden = ordenPendiente;
-                ordenPendiente = "";
+                String orden = ordenPendiente;   // copio la orden que me hayan dejado
+                ordenPendiente = "";             // y la vacío
 
-                switch (orden){
+                switch (orden) {
                     case "":
-                        break;
+                        break;                   // no hay orden: no hago nada
 
                     case "comer":
                         estado = Estado.COMIENDO;
                         alimentarse();
-
                         break;
+
                     case "jugar":
                         estado = Estado.JUGANDO;
                         jugar();
-
                         break;
+
                     case "limpiar":
                         estado = Estado.LIMPIANDO;
                         limpiarse();
-
                         break;
 
                     default:
-                        System.out.println("orden no encontrada");
-
+                        System.out.println(nombre + ": orden no encontrada");
                 }
-                if (estado != Estado.MUERTO) {
-                    estado = Estado.PARADO;
 
+                if (estado != Estado.MUERTO) {   // si no ha muerto mientras tanto
+                    estado = Estado.PARADO;      // vuelve a estar libre
                 }
 
                 Thread.sleep(1000);
             }
 
-
         } catch (InterruptedException e) {
-            estado = Estado.MUERTO;
-            System.out.println(nombre + "Fin. Adiós, cuidador");
-            throw new RuntimeException(e);
+            e.printStackTrace();
+            estado = Estado.MUERTO;              // me han interrumpido: he muerto
         }
 
-
+        System.out.println(nombre + ": Fin Adiós cuidador");
     }
 
     @Override
