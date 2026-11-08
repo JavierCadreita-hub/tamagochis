@@ -16,6 +16,7 @@ public class Tamagochi implements Runnable {
     private String pregunta = "";
     private Integer respuesta = null;
     private long nacimiento = System.currentTimeMillis();
+    private long ultimaSuciedad = System.currentTimeMillis();
     private Thread hilo;
 
     public Tamagochi(String nombre) {
@@ -63,14 +64,14 @@ public class Tamagochi implements Runnable {
     public boolean darOrden(String orden) {
         if (estado == Estado.PARADO && ordenPendiente.isEmpty()) {
             ordenPendiente = orden;
-            return true;     // aceptada
+            return true;
         }
-        return false;        // está ocupado
+        return false;
     }
 
     public boolean matar() {
         if (estado != Estado.PARADO || !ordenPendiente.isEmpty()) {
-            return false;    // está ocupado (o ya muerto): no hace caso
+            return false;
         }
         morir("Estaba parado y el cuidador me ha apagado.");
         return true;
@@ -106,17 +107,27 @@ que 10. El cuidador deberá responder. Si el resultado es incorrecto el tamagotc
             logConTimesTamp(pregunta);
 
             while (respuesta == null) {
+                comprobarTiempo();
                 Thread.sleep(100);
             }
 
             int contestado = respuesta;
             if (contestado == num1 + num2) {
-                logConTimesTamp("¡Correcto! Ya me he cansado de jugar.");
+                logConTimesTamp("Correcto! Ya me he cansado de jugar");
                 acertado = true;
             } else {
-                logConTimesTamp("¡Mal! " + num1 + " + " + num2 + " no es " + contestado + ". Sigo jugando...");
+                logConTimesTamp("Mal! " + num1 + " + " + num2 + " no es " + contestado + ". sigo jugando...");
             }
         }
+    }
+
+    public String getPregunta() {
+        return pregunta;
+    }
+
+    public void setRespuesta(int respuesta) {
+        this.pregunta = "";
+        this.respuesta = respuesta;
     }
 
     /*
@@ -125,10 +136,11 @@ También necesita limpiarse. El tamagotchi se va ensuciando según pasa el tiemp
 avisa que está empezando a estar muy sucio. Al llegar a 10 el tamagotchi muere
      */
     public void limpiarse() throws InterruptedException {
-        logConTimesTamp("Me meto en la bañera (5 s)... suciedad " + suciedad + "/10");
+        logConTimesTamp("Me meto en la bañera (5 segunos ) suciedad " + suciedad + "/10");
         Thread.sleep(5000);
         suciedad = 0;
-        logConTimesTamp("¡Ya estoy limpio! Suciedad 0/10");
+        ultimaSuciedad = System.currentTimeMillis();
+        logConTimesTamp("Ya estoy limpio! Suciedad 0/10");
     }
 
 
@@ -151,21 +163,32 @@ avisa que está empezando a estar muy sucio. Al llegar a 10 el tamagotchi muere
         suciedad++;
 
         if (suciedad == 5) {
-            logConTimesTamp("¡Empiezo a estar muy sucio! Suciedad 5/10");
+            logConTimesTamp("Empiezo a estar muy sucio! Suciedad 5/10");
         } else if (suciedad >= 10) {
-            morir("Suciedad 10/10... ¡Me muero de lo sucio que estoy!");
+            morir("Suciedad 10/10 Me muero de lo sucio que estoy!");
+        }
+    }
+
+    public void comprobarTiempo() {
+        while (estado != Estado.MUERTO && System.currentTimeMillis() - ultimaSuciedad >= 20000) {
+            ultimaSuciedad += 20000;
+            ensuciarse();
+        }
+        if (getVidaRestante() == 0) {
+            morir("Se han cumplido mis 5 minutos de vida Adiós, cuidador!");
         }
     }
 
     public void logConTimesTamp(String mensaje){
         long segundos = (System.currentTimeMillis() - timesTampInicio) / 1000;
-        System.out.printf("[%02d:%02d] [%s #%d] %s%n", segundos / 60, segundos % 60, nombre, id, mensaje);
+        System.out.println("[" + segundos + "s] " + nombre + ": " + mensaje);
     }
 
     @Override
     public void run() {
         hilo = Thread.currentThread();
         nacimiento = System.currentTimeMillis();
+        ultimaSuciedad = nacimiento;
         System.out.println(nombre + ": He nacido!!! Tardo " + ritmo + " ms en comer");
 
         try {
@@ -201,6 +224,7 @@ avisa que está empezando a estar muy sucio. Al llegar a 10 el tamagotchi muere
                     estado = Estado.PARADO;
                 }
 
+                comprobarTiempo();
                 Thread.sleep(1000);
             }
 
@@ -209,7 +233,7 @@ avisa que está empezando a estar muy sucio. Al llegar a 10 el tamagotchi muere
             estado = Estado.MUERTO;
         }
 
-        System.out.println(nombre + ": Fin Adiós cuidador");
+        System.out.println(nombre + ": fin Adiós cuidador");
     }
 
     @Override
