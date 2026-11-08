@@ -13,18 +13,30 @@ public class Main {
 El programa principal es el “cuidador” de X Tamagotchis. Por lo tanto al arrancarse deberá ponerles las pilas y lanzarlos al
 mundo.
 */
+        ArrayList<Tamagochi> tamagochis = new ArrayList<>();
+        ArrayList<Thread> hilos = new ArrayList<>();
 
+        int opcion = 0;
 
+        //Este bucle crea los tamagochis y arranca los hilos.
+        for (int i = 0; i < 4; i++) {
+            Tamagochi tama = new Tamagochi("nombre" + i);
+            Thread hilo = new Thread(tama);
 
+            tamagochis.add(tama);
+            hilos.add(hilo);
 
+            hilo.start();
+        }
 
-    }
+        try {
+            Thread.sleep(500);
+        } catch (InterruptedException e) {
+            throw new RuntimeException(e);
+        }
 
-    public static Estado consultarEstado() {
-        return null;
-    }
-
-    public static void matarTamagochi() {
-        System.out.println("matado!!");
     }
 }
+
+
+
